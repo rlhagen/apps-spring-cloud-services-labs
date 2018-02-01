@@ -1,31 +1,43 @@
 package io.pivotal.fortune;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+@Slf4j
 @Service
 public class FortuneService {
 
-    public String getFortune() {
-        Random random = new Random();
-        String fortune;
+    @Autowired
+    FortuneRepository repository;
 
-        switch (random.nextInt(3)) {
-            case 0:
-                fortune = "You learn from your mistakes... You will learn a lot today.";
-                break;
-            case 1:
-                fortune = "You can always find happiness at work on Friday";
-                break;
-            case 2:
-                fortune = "You will be hungry again in one hour.";
-                break;
-            default:
-                fortune = "Today will be an awesome day!";
-                break;
-        }
-
-        return fortune;
+    public Iterable<Fortune> getAll(){
+        return repository.findAll();
     }
+
+    public void add(Fortune fortune){
+        repository.save(fortune);
+    }
+
+    public void clear(){
+        repository.deleteAll();
+    }
+
+    public Fortune random(){
+        Random random = new Random(System.currentTimeMillis());
+        int index = random.nextInt((int) this.repository.count() - 1);
+        return StreamSupport.stream(this.repository.findAll().spliterator(), false).collect(Collectors.toList()).get(index);
+    }
+
+    @RabbitListener(queues = "fortune-queue")
+    public void receiver(@Payload Fortune fortune){
+        this.repository.save(fortune);
+    }
+
 }
