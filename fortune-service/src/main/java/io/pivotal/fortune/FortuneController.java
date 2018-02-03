@@ -3,6 +3,7 @@ package io.pivotal.fortune;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@FeignClient("fortune-service")
 @RestController
 public class FortuneController {
     private FortuneService fortuneService;
